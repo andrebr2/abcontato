@@ -23,4 +23,12 @@ public class ContatoService {
 		List<Contato> list = repository.findAllByOrderByNomeAsc();
 		return list.stream().map(x -> new ContatoDTO(x)).collect(Collectors.toList());
 	}
+	
+	@Transactional
+	public ContatoDTO insert(ContatoDTO dto) {
+		Contato contato = new Contato(null, dto.getNome(), dto.getSobrenome(), dto.getTelefone());
+		contato = repository.save(contato);
+		return new ContatoDTO(contato);
+	}
+	
 }
