@@ -5,12 +5,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ab.abcontato.dto.ContatoDTO;
 import com.ab.abcontato.entities.Contato;
 import com.ab.abcontato.repositories.ContatoRepository;
+import com.ab.abcontato.services.exceptions.DataBaseException;
 import com.ab.abcontato.services.exceptions.ResourceNotFoundException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -50,7 +53,18 @@ public class ContatoService {
 			entity = repository.save(entity);
 			return new ContatoDTO(entity);
 		}catch(EntityNotFoundException e){
-			throw new ResourceNotFoundException("Id not found." + id);
+			throw new ResourceNotFoundException("Id not found: " + id);
+		}
+	}
+	
+	public void delete(Long id) {
+		try {
+			repository.deleteById(id);
+		}catch(EmptyResultDataAccessException e) {
+			throw new ResourceNotFoundException("Id not found: " + id);
+		}
+		catch(DataIntegrityViolationException e) {
+			throw new DataBaseException("Integrity violation.");
 		}
 	}
 
