@@ -13,31 +13,52 @@ import com.ab.abcontato.entities.Contato;
 import com.ab.abcontato.repositories.ContatoRepository;
 import com.ab.abcontato.services.exceptions.ResourceNotFoundException;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class ContatoService {
 
 	@Autowired
 	private ContatoRepository repository;
-	
-	@Transactional(readOnly=true)
+
+	@Transactional(readOnly = true)
 	public List<ContatoDTO> findAll() {
-		
+
 		List<Contato> list = repository.findAllByOrderByNomeAsc();
 		return list.stream().map(x -> new ContatoDTO(x)).collect(Collectors.toList());
 	}
-	
+
 	@Transactional
 	public ContatoDTO insert(ContatoDTO dto) {
 		Contato contato = new Contato(null, dto.getNome(), dto.getSobrenome(), dto.getTelefone());
 		contato = repository.save(contato);
 		return new ContatoDTO(contato);
 	}
-	
-	@Transactional(readOnly=true)
+
+	@Transactional(readOnly = true)
 	public ContatoDTO findById(Long id) {
 		Optional<Contato> obj = repository.findById(id);
 		Contato entity = obj.orElseThrow(() -> new ResourceNotFoundException("Entity not found."));
 		return new ContatoDTO(entity);
 	}
-	
+
+	@Transactional
+	public ContatoDTO upDate(Long id, ContatoDTO dto) {
+		try {
+			Contato entity = repository.getOne(id);
+			copyDtoToEntity(dto, entity);
+			entity = repository.save(entity);
+			return new ContatoDTO(entity);
+		}catch(EntityNotFoundException e){
+			throw new ResourceNotFoundException("Id not found." + id);
+		}
+	}
+
+	private void copyDtoToEntity(ContatoDTO dto, Contato entity) {
+
+		entity.setNome(dto.getNome());
+		entity.setSobrenome(dto.getSobrenome());
+		entity.setTelefone(dto.getTelefone());
+	}
+
 }
